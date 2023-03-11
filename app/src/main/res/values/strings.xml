@@ -1,0 +1,4 @@
+<resources>
+    <string name="app_name">hw4-1ch-network</string>
+    <string name="input_hint">Write a message...</string>
+</resources>
