@@ -11,16 +11,17 @@ import androidx.recyclerview.widget.RecyclerView
 import java.util.concurrent.Executors
 
 class MessageAdapter(
-    private val messages: List<Message>, private val onClickImage: (Message) -> Unit
+    private val messagesViewModel: MessagesViewModel, private val onClickImage: (Message) -> Unit
 ) : RecyclerView.Adapter<MessageAdapter.MessageViewHolder>() {
 
-    class MessageViewHolder(root: View) : RecyclerView.ViewHolder(root) {
+    class MessageViewHolder(root: View, private val messagesViewModel: MessagesViewModel) :
+        RecyclerView.ViewHolder(root) {
         private val usernameView = root.findViewById<TextView>(R.id.username_view)
         private val msgIdView = root.findViewById<TextView>(R.id.msg_id_view)
         private val timeView = root.findViewById<TextView>(R.id.time_view)
         private val textView = root.findViewById<TextView>(R.id.text_view)
         private val handler = Handler(Looper.getMainLooper())
-//        private val executor = Executors.newSingleThreadExecutor()
+
         val imageView: ImageView = root.findViewById<ImageView>(R.id.image_view)
 
         fun bind(message: Message) {
@@ -35,7 +36,7 @@ class MessageAdapter(
 
                 val executor = Executors.newSingleThreadExecutor()
                 executor.execute {
-                    val image = MyInternetUtility.loadImage("thumb/${message.data}")
+                    val image = messagesViewModel.getImage("thumb/${message.data}")
                     handler.post {
                         if (image != null) imageView.setImageBitmap(image)
                     }
@@ -48,7 +49,7 @@ class MessageAdapter(
     }
 
     override fun getItemViewType(position: Int): Int {
-        return when (messages[position].type) {
+        return when (messagesViewModel.getMessages()[position].type) {
             MessageType.TEXT -> 0
             MessageType.IMAGE -> 1
         }
@@ -56,18 +57,19 @@ class MessageAdapter(
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): MessageViewHolder {
         val holder = MessageViewHolder(
-            LayoutInflater.from(parent.context).inflate(R.layout.message_item, parent, false)
+            LayoutInflater.from(parent.context).inflate(R.layout.message_item, parent, false),
+            messagesViewModel
         )
         if (viewType == 1) {
             holder.imageView.setOnClickListener {
-                onClickImage(messages[holder.adapterPosition])
+                onClickImage(messagesViewModel.getMessages()[holder.adapterPosition])
             }
         }
         return holder
     }
 
-    override fun getItemCount(): Int = messages.size
+    override fun getItemCount(): Int = messagesViewModel.getMessages().size
 
     override fun onBindViewHolder(holder: MessageViewHolder, position: Int) =
-        holder.bind(messages[position])
+        holder.bind(messagesViewModel.getMessages()[position])
 }
